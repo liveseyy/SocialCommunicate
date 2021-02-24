@@ -8,7 +8,7 @@
 </head>
 <body>
     <div id="header">
-        <span class="logo">SocialCommunicate</span>
+        <a href="{% url 'dashboard' %}" class="logo">SocialCommunicate</a>
         {% if request.user.is_authenticated %}
             <ul class="menu">
                 <li {% if section == 'dashboard' %}class='selected'{% endif %}>
@@ -25,13 +25,25 @@
 
         <span class="user">
             {% if request.user.is_authenticated %}
-                Hello {{ request.user.username }}
+                Hello <a href="{% url 'edit' %}">{{ request.user.username }}</a>
                 <a href="{% url 'logout' %}">Logout</a>
             {% else %}
                 <a href="{% url 'login' %}">Log-in</a>
             {% endif %}
         </span>
     </div>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">
+                    {{ message|safe }}
+                    <a href="#" class="close">x</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <div id="content">
         {% block content %}
         {% endblock %}
