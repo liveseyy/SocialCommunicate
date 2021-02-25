@@ -3,6 +3,8 @@ from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
 
+from .ru_to_en_alphabet import ru_to_en_alphabet
+
 
 class Image(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='images_created', on_delete=models.CASCADE)
@@ -19,7 +21,7 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = slugify(''.join(ru_to_en_alphabet.get(char, char) for char in self.title))
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
