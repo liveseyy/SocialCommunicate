@@ -8,24 +8,99 @@
     <a href="{{ image.image.url }}">
         <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
     </a>
-    {% with total_likes=image.users_like.count %}
+    {% with total_likes=image.users_like.count users_like=image.users_like.all %}
         <div class="image-info">
             <div>
                 <span class="count">
-                    {{ total_likes }} like{{ total_likes|pluralize }}
+                    <span class="total">{{ total_likes }}</span>
+                    like{{ total_likes|pluralize }}
                 </span>
+                <a href="#" data-id="{{ image.id }}"
+                   data-action="{% if request.user in users_like %}un{% endif %}like"
+                   class="like button">
+                    {% if request.user not in users_like %}
+                        Like
+                    {% else %}
+                        Unlike
+                    {% endif %}
+                </a>
             </div>
             {{ image.description|linebreaks }}
         </div>
         <div class="image-likes">
             {% for user in image.users_like.all %}
-                <div>
-                    <img src="{{ user.profile.photo.url }}">
-                    <p>{{ user.username }}</p>
-                </div>
+                {% if user != request.user %}
+                    <div>
+    <!--                 <img src="{ user.profile.photo.url }">-->
+                        <p>{{ user.username }}</p>
+                    </div>
+                {% endif %}
             {% empty %}
                 Nobody likes this image yet.
             {% endfor %}
         </div>
     {% endwith %}
+{% endblock %}
+
+{% block domready %}
+
+    const csrfToken = getCookie('csrftoken');
+    let likeButton = document.querySelector('a.like');
+    let image_id = likeButton.dataset.id;
+    const request = new XMLHttpRequest();
+
+    const url = '{% url "images:like" %}';
+
+    request.responseType =	"json";
+    likeButton.addEventListener('click', (e) => {
+
+        e.preventDefault();
+
+        let action = likeButton.dataset.action;
+        let params = "id=" + image_id + "&action=" + action;
+
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+        request.setRequestHeader("X-CSRFToken", csrfToken);
+        request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        request.send(params);
+    });
+
+    request.addEventListener("readystatechange", () => {
+
+        if (request.readyState === 4 && request.status === 200) {
+            let data = request.response;
+            if(data['status'] === 'ok') {
+                    let previous_action = likeButton.dataset.action;
+
+                    likeButton.innerHTML = previous_action == 'like' ? 'Unlike':'Like';
+                    likeButton.dataset.action = previous_action == 'like' ? 'unlike':'like';
+
+                    let previous_likes = document.querySelector('span.total').innerHTML;
+                    document.querySelector('span.total').innerHTML = previous_action == 'like'
+                                                        ? +previous_likes + 1 : +previous_likes - 1;
+                }
+                
+            else {
+                console.log('Error')
+            };
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
 {% endblock %}
