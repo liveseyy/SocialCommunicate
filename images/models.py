@@ -21,7 +21,7 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(''.join(ru_to_en_alphabet.get(char, char) for char in self.title))
+            self.slug = slugify(''.join(ru_to_en_alphabet.get(char.lower(), char) for char in self.title))
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

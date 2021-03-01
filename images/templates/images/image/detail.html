@@ -45,11 +45,11 @@
 {% block domready %}
 
     const csrfToken = getCookie('csrftoken');
+    const request = new XMLHttpRequest();
+    const url = '{% url "images:like" %}';
+
     let likeButton = document.querySelector('a.like');
     let image_id = likeButton.dataset.id;
-    const request = new XMLHttpRequest();
-
-    const url = '{% url "images:like" %}';
 
     request.responseType =	"json";
     likeButton.addEventListener('click', (e) => {

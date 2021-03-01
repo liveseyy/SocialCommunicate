@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Images bookmarked{% endblock %}
+
+{% block content %}
+  <h1>Images bookmarked</h1>
+  <div id="image-list">
+      {% include 'images/image/list_ajax.html' %}
+  </div>
+{% endblock %}
+
+{% block domready %}
+
+  const request = new XMLHttpRequest();
+
+  let page = 1;
+  let empty_page = false;
+  let block_request = false;
+
+  // if the screen is large and there is no scroll
+  if (atBottomOfPage()) sendOrNotRequest();
+
+
+  window.addEventListener('scroll', sendOrNotRequest);
+
+
+  request.addEventListener("readystatechange", () => {
+	if (request.readyState === 4 && request.status === 200) {
+      let data = request.response;
+	  if (data == '') {
+        empty_page = true;
+      }
+      else {
+        block_request = false;
+        document.querySelector('#image-list').innerHTML += data;
+      }
+    }
+  });
+
+  function sendOrNotRequest(){
+    if (atBottomOfPage() && empty_page == false && block_request == false) {
+      block_request = true;
+      page += 1;
+
+      request.open('GET', '?page=' + page);
+      request.setRequestHeader('Content-Type', 'application/x-www-form-url');
+      request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      request.send();
+    }
+  }
+
+  function atBottomOfPage(){
+    let windowRelativeBottom = document.documentElement.getBoundingClientRect().bottom;
+
+    if (windowRelativeBottom < document.documentElement.clientHeight + 150) {
+      return true;
+    }
+    else return false;
+  }
+
+{% endblock %}
