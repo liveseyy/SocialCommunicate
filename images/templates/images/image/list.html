@@ -18,8 +18,10 @@
   let block_request = false;
 
   // if the screen is large and there is no scroll
-  if (atBottomOfPage()) sendOrNotRequest();
-
+  let interval = setInterval(() => {
+    if (atBottomOfPage() && empty_page == false && block_request == false) sendOrNotRequest()
+      else if (block_request == false) clearInterval(interval);
+    }, 0);
 
   window.addEventListener('scroll', sendOrNotRequest);
 
