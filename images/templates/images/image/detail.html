@@ -51,7 +51,6 @@
     let likeButton = document.querySelector('a.like');
     let image_id = likeButton.dataset.id;
 
-    request.responseType =	"json";
     likeButton.addEventListener('click', (e) => {
 
         e.preventDefault();
@@ -67,7 +66,6 @@
     });
 
     request.addEventListener("readystatechange", () => {
-
         if (request.readyState === 4 && request.status === 200) {
             let data = request.response;
             if(data['status'] === 'ok') {

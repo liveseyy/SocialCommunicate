@@ -19,7 +19,7 @@
 
   // if the screen is large and there is no scroll
   let interval = setInterval(() => {
-    if (atBottomOfPage() && empty_page == false && block_request == false) sendOrNotRequest()
+    if (checkAtBottomOfPage() && empty_page == false && block_request == false) sendOrNotRequest()
       else if (block_request == false) clearInterval(interval);
     }, 0);
 
@@ -40,7 +40,7 @@
   });
 
   function sendOrNotRequest(){
-    if (atBottomOfPage() && empty_page == false && block_request == false) {
+    if (checkAtBottomOfPage() && empty_page == false && block_request == false) {
       block_request = true;
       page += 1;
 
@@ -51,7 +51,7 @@
     }
   }
 
-  function atBottomOfPage(){
+  function checkAtBottomOfPage(){
     let windowRelativeBottom = document.documentElement.getBoundingClientRect().bottom;
 
     if (windowRelativeBottom < document.documentElement.clientHeight + 150) {

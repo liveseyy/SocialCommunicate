@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+
+{% block title %}{{ user.get_full_name }}{% endblock %}
+
+{% block content %}
+  <h1>{{ user.get_full_name }}</h1>
+  <div class="profile-info">
+      <img src="{% thumbnail user.profile.photo 180x180 %}" class="user-detail">
+  </div>
+  {% with total_followers=user.followers.count %}
+    <span class="count">
+        <span class="total">{{ total_followers }}</span>
+        follower{{ total_followers|pluralize }}
+    </span>
+    <a href="#" data-id="{{ user.id }}"
+       data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow">
+        {% if request.user not in user.followers.all %}
+          Follow
+        {% else %}
+          Unfollow
+        {% endif %}
+    </a>
+    <div id="image-list" class="image-container">
+        {% include "images/image/list_ajax.html" with images=user.images_created.all %}
+    </div>
+  {% endwith %}
+{% endblock %}
+
+{% block domready %}
+    const csrfToken = getCookie('csrftoken');
+
+    const request = new XMLHttpRequest();
+    request.responseType =	"json";
+
+    const url = '{% url "user_follow" %}';
+
+    let followButton = document.querySelector('a.follow');
+    let userId = followButton.dataset.id;
+
+    followButton.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        let action = followButton.dataset.action;
+        let params = 'id=' + userId + '&action=' + action;
+
+        request.open('POST', url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+        request.setRequestHeader("X-CSRFToken", csrfToken);
+        request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+        request.send(params);
+    });
+
+    request.addEventListener("readystatechange", () => {
+        if (request.readyState === 4 && request.status === 200) {
+            let data = request.response;
+            if(data['status'] === 'ok') {
+                    let previous_action = followButton.dataset.action;
+
+                    followButton.innerHTML = previous_action == 'follow' ? 'Unfollow':'Follow';
+                    followButton.dataset.action = previous_action == 'follow' ? 'unfollow':'follow';
+
+                    let previous_followers = document.querySelector('span.total').innerHTML;
+                    document.querySelector('span.total').innerHTML = previous_action == 'follow'
+                                                        ? +previous_followers + 1 : +previous_followers - 1;
+                }
+
+            else {
+                console.log('Error')
+            };
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+{% endblock %}
