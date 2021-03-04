@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm, CustomAuthenticationForm
 from .models import Profile, Contact
@@ -25,7 +26,21 @@ def dashboard(request):
     if following_ids:
         # If user is following others, retrieve only their actions
         actions = actions.filter(user_id__in=following_ids)
-    actions = actions.select_related('user', 'user__profile').prefetch_related('target')[:10]
+    actions = actions.select_related('user', 'user__profile').prefetch_related('target')
+    paginator = Paginator(actions, 12)
+    page = request.GET.get('page')
+    try:
+        actions = paginator.page(page)
+    except PageNotAnInteger:
+        actions = paginator.page(1)
+    except EmptyPage:
+        if request.is_ajax():
+            return HttpResponse('')
+        actions = paginator.page(paginator.num_pages)
+
+    if request.is_ajax():
+        return render(request, 'actions/action/detail.html', {'actions': actions})
+
     return render(request, 'account/dashboard.html', {'section': 'dashboard', 'actions': actions})
 
 
