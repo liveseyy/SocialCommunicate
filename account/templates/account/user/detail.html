@@ -4,7 +4,7 @@
 {% block title %}{{ user.get_full_name }}{% endblock %}
 
 {% block content %}
-  <h1>{{ user.get_full_name }}</h1>
+  <h1>{{ user.get_full_name }}{% if request.user == user %} (you){% endif %}</h1>
   <div class="profile-info">
       <img src="{% thumbnail user.profile.photo 180x180 %}" class="user-detail">
   </div>
@@ -13,14 +13,16 @@
         <span class="total">{{ total_followers }}</span>
         follower{{ total_followers|pluralize }}
     </span>
-    <a href="#" data-id="{{ user.id }}"
-       data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow">
-        {% if request.user not in user.followers.all %}
-          Follow
-        {% else %}
-          Unfollow
-        {% endif %}
-    </a>
+    {% if request.user != user %}
+        <a href="#" data-id="{{ user.id }}"
+           data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow">
+            {% if request.user not in user.followers.all %}
+              Follow
+            {% else %}
+              Unfollow
+            {% endif %}
+        </a>
+    {% endif %}
     <div id="image-list" class="image-container">
         {% include "images/image/list_ajax.html" with images=user.images_created.all %}
     </div>
@@ -28,6 +30,7 @@
 {% endblock %}
 
 {% block domready %}
+{% if request.user != user %}
     const csrfToken = getCookie('csrftoken');
 
     const request = new XMLHttpRequest();
@@ -87,4 +90,5 @@
         }
         return cookieValue;
     }
+{% endif %}
 {% endblock %}

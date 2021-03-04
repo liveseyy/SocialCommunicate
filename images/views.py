@@ -8,6 +8,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ImageCreateForm
 from .models import Image
 from common.decorators import ajax_required
+from actions.utils import create_action
 
 
 @login_required
@@ -41,6 +42,7 @@ def image_like(request):
             image = Image.objects.get(id=image_id)
             if action == 'like':
                 image.users_like.add(request.user)
+                create_action(request.user, 'liked the image', image)
             else:
                 image.users_like.remove(request.user)
             return JsonResponse({'status': 'ok'})
@@ -54,10 +56,10 @@ def image_create(request):
     if request.method == 'POST':
         form = ImageCreateForm(data=request.POST)
         if form.is_valid():
-            cd = form.cleaned_data
             image = form.save(commit=False)
             image.user = request.user
             image.save()
+            create_action(request.user, 'bookmarked image', image)
             messages.success(request, 'Image added successfully.')
             return redirect(image.get_absolute_url())
         else:

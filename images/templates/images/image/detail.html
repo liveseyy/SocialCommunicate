@@ -48,6 +48,8 @@
     const request = new XMLHttpRequest();
     const url = '{% url "images:like" %}';
 
+    request.responseType =	"json";
+
     let likeButton = document.querySelector('a.like');
     let image_id = likeButton.dataset.id;
 
@@ -68,7 +70,7 @@
     request.addEventListener("readystatechange", () => {
         if (request.readyState === 4 && request.status === 200) {
             let data = request.response;
-            if(data['status'] === 'ok') {
+            if(data['status'] == 'ok') {
                     let previous_action = likeButton.dataset.action;
 
                     likeButton.innerHTML = previous_action == 'like' ? 'Unlike':'Like';
@@ -78,7 +80,6 @@
                     document.querySelector('span.total').innerHTML = previous_action == 'like'
                                                         ? +previous_likes + 1 : +previous_likes - 1;
                 }
-                
             else {
                 console.log('Error')
             };
