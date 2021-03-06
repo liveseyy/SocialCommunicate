@@ -3,7 +3,7 @@
 {% block title %}Images bookmarked{% endblock %}
 
 {% block content %}
-  <h1>Images bookmarked</h1>
+  <h1>Images bookmarked (<a href="{% url 'images:ranking' %}">most popular</a>)</h1>
   <div id="image-list">
       {% include 'images/image/list_ajax.html' %}
   </div>
